@@ -1,6 +1,7 @@
 .git
 .gitignore
 .claude
+.agents
 .nojekyll
 .assetsignore
 CNAME
