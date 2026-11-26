@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aDuckGod · Discord bot developer</title>
+<meta name="description" content="hi, im duck. I make Discord bots for Roblox roleplay servers, plus Minecraft and Geometry Dash mods, websites and AI tools.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aduckgod.com/">
+<meta property="og:title" content="aDuckGod · Discord bot developer">
+<meta property="og:description" content="Custom Discord bots for Roblox roleplay servers, plus mods, websites and AI tools.">
+<meta property="og:image" content="https://aduckgod.com/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://aduckgod.com/assets/og.png">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="canonical" href="https://aduckgod.com/">
+<link rel="icon" href="assets/avatar.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.lanyard.rest" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="style.css?v=8">
+<script>document.documentElement.className = 'js'</script>
+<script src="script.js?v=7" defer></script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-grid"></div><div class="bg-spot"></div><div class="bg-noise"></div></div>
+
+<header class="nav">
+  <a class="brand" href="./"><img src="assets/avatar.png" alt="" width="26" height="26">aDuckGod</a>
+  <nav class="tabs" aria-label="Main">
+    <a href="./" aria-current="page">Home</a>
+    <a href="portfolio.html">Portfolio</a>
+  </nav>
+  <button class="cmd" type="button" data-palette aria-label="Open command menu"><span class="cmd-label">Commands</span><kbd>/</kbd></button>
+</header>
+
+<main class="home">
+  <div class="bento">
+    <section class="tile profile" style="--i:0" aria-label="About">
+      <div class="who">
+        <span class="avatar">
+          <span class="avatar-ring"></span>
+          <img src="assets/avatar.png" alt="" width="64" height="64" fetchpriority="high" onerror="this.onerror=null;this.src='assets/duck.svg';this.className='is-fallback'">
+          <span class="presence"></span>
+        </span>
+        <span>
+          <span class="who-name">aDuckGod</span>
+          <span class="who-role">Discord bot developer</span>
+        </span>
+      </div>
+      <h1>hi, im duck</h1>
+      <p class="rotline">
+        <span class="sr-only">I make Discord bots, Minecraft mods, Geometry Dash mods, shaders, websites and AI tools.</span>
+        <span aria-hidden="true">I make <span class="rot" data-rotate="Discord bots|Minecraft mods|GD mods|shaders|websites|AI tools">Discord bots</span></span>
+      </p>
+      <p class="bio">Mostly for Roblox roleplay servers: session systems, setup wizards and role-gated buttons, all in Python.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="portfolio.html">View portfolio<svg class="i go"><use href="assets/icons.svg?v=3#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener"><svg class="i"><use href="assets/icons.svg?v=3#i-discord"/></svg>Join Discord</a>
+      </div>
+    </section>
+
+    <section class="tile status" style="--i:1" aria-label="Discord status">
+      <div class="tile-top">
+        <span class="label">Discord</span>
+        <span class="status-pill" id="presence-pill">
+          <span class="dot" id="presence-dot"></span>
+          <span id="presence-title">Available</span>
+        </span>
+      </div>
+
+      <div class="status-fallback" id="presence-fallback">
+        <p class="status-title">Open for commissions</p>
+        <p class="status-sub" id="presence-sub">Custom bots, server setup and hosting.</p>
+      </div>
+
+      <div class="activity" id="presence-activity" hidden>
+        <div class="act-art" id="act-art">
+          <img id="act-img" alt="" hidden>
+          <svg class="act-ic" id="act-ic" aria-hidden="true"><use href="assets/icons.svg?v=3#i-gamepad"/></svg>
+          <img class="act-small" id="act-small" alt="" hidden>
+        </div>
+        <div class="act-body">
+          <div class="act-top">
+            <span class="act-kicker" id="act-kicker">Playing</span>
+            <span class="act-time" id="act-time" hidden></span>
+          </div>
+          <p class="act-name" id="act-name"></p>
+          <p class="act-meta" id="act-meta" hidden></p>
+          <div class="act-bar" id="act-bar" hidden><span id="act-bar-fill"></span></div>
+        </div>
+      </div>
+
+      <div class="status-foot">
+        <a class="status-link" href="portfolio.html#pricing">Bots from <b>$5</b><svg class="i go"><use href="assets/icons.svg?v=3#i-arrow"/></svg></a>
+        <span class="live" id="presence-live" hidden><span class="dot pulse"></span>Live</span>
+      </div>
+    </section>
+
+    <a class="tile feature" href="portfolio.html#greenville" style="--i:2">
+      <div class="tile-top">
+        <span class="label">Featured project</span>
+        <span class="arrow-circle"><svg class="i"><use href="assets/icons.svg?v=3#i-arrow"/></svg></span>
+      </div>
+      <div>
+        <h2>Greenville Roleplay Bot</h2>
+        <p>Multi-server session bot with a setup wizard and role-gated join buttons.</p>
+      </div>
+      <div class="chips"><span class="chip">/startup</span><span class="chip">/ea</span><span class="chip">/release</span><span class="chip">/config wizard</span></div>
+    </a>
+
+    <a class="tile social" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener" style="--i:3;--c:#5865f2">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-discord"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+      <span class="social-txt"><b>Discord</b><span>Join server</span></span>
+    </a>
+    <a class="tile social" href="https://github.com/a-DuckGod" target="_blank" rel="noopener" style="--i:4;--c:#f0f6fc;--on:#0d1117">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-github"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+      <span class="social-txt"><b>GitHub</b><span>Code &amp; projects</span></span>
+    </a>
+    <a class="tile social" href="https://www.youtube.com/@aDuckGod" target="_blank" rel="noopener" style="--i:5;--c:#ff3040">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-youtube"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+      <span class="social-txt"><b>YouTube</b><span>Videos</span></span>
+    </a>
+    <a class="tile social" href="https://www.twitch.tv/a_duckgod" target="_blank" rel="noopener" style="--i:6;--c:#a970ff">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-twitch"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+      <span class="social-txt"><b>Twitch</b><span>Streams</span></span>
+    </a>
+  </div>
+
+  <footer class="home-foot">
+    <span>© <span data-year>2026</span> aDuckGod</span>
+    <span class="hint">Press <kbd>/</kbd> for commands</span>
+  </footer>
+</main>
+
+<div class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
