@@ -14,19 +14,82 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://aduckgod.com/assets/og.png">
-<meta name="theme-color" content="#0a0a0c">
+<meta name="theme-color" content="#08080a">
 <link rel="canonical" href="https://aduckgod.com/">
 <link rel="icon" href="assets/avatar.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.lanyard.rest" crossorigin>
+<link rel="preconnect" href="https://cdn.discordapp.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..500&display=swap">
-<link rel="stylesheet" href="style.css?v=8">
-<script>document.documentElement.className = 'js'</script>
-<script src="script.js?v=7" defer></script>
+<link rel="stylesheet" href="style.css?v=9">
+<script>
+  document.documentElement.className = 'js';
+  try {
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    var isReload = nav && nav.type === 'reload';
+    if (!isReload && sessionStorage.getItem('adg_entered') === '1') {
+      document.documentElement.classList.add('has-entered');
+    } else {
+      document.documentElement.classList.add('gate-pending');
+    }
+  } catch (e) {}
+</script>
+<script src="script.js?v=8" defer></script>
 </head>
 <body>
-<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-grid"></div><div class="bg-spot"></div><div class="bg-noise"></div></div>
+<div class="bg" aria-hidden="true">
+  <div class="bg-aurora"></div>
+  <div class="bg-caustics"></div>
+  <div class="bg-horizon"></div>
+  <div class="bg-spot"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="enter-gate" id="enter-gate" role="dialog" aria-modal="true" aria-label="Enter aDuckGod" tabindex="-1">
+  <div class="gate-caustic" aria-hidden="true"></div>
+  <div class="gate-lens" id="gate-lens" aria-hidden="true"></div>
+  <div class="gate-ripples" id="gate-ripples" aria-hidden="true"></div>
+  <div class="gate-spacer" aria-hidden="true"></div>
+
+  <div class="gate-center" id="gate-card">
+    <div class="gate-medallion">
+      <span class="gate-wave" style="--w:0" aria-hidden="true"></span>
+      <span class="gate-wave" style="--w:1" aria-hidden="true"></span>
+      <span class="gate-wave" style="--w:2" aria-hidden="true"></span>
+      <span class="gate-halo" aria-hidden="true"></span>
+      <span class="gate-coin">
+        <img src="assets/avatar.png" alt="" width="102" height="102" fetchpriority="high" onerror="this.onerror=null;this.src='assets/duck.svg';this.className='is-fallback'">
+        <span class="gate-glare" aria-hidden="true"></span>
+      </span>
+    </div>
+
+    <p class="gate-brand">aDuckGod</p>
+    <p class="gate-cta">
+      <span class="gate-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="gate-cta-desktop">Click anywhere to enter</span>
+      <span class="gate-cta-touch">Tap anywhere to enter</span>
+    </p>
+
+    <div class="gate-track" id="gate-track">
+      <span class="gate-track-art-wrap">
+        <img class="gate-track-art" id="gate-track-art" alt="" width="34" height="34" hidden>
+        <svg class="gate-track-ic" id="gate-track-ic" aria-hidden="true"><use href="assets/icons.svg?v=4#i-music"/></svg>
+      </span>
+      <span class="gate-track-meta">
+        <span class="gate-track-kicker" id="gate-track-kicker">Random track queued</span>
+        <span class="gate-track-title" id="gate-track-title">Selecting a track…</span>
+      </span>
+      <button class="gate-reroll" id="gate-reroll" type="button" aria-label="Roll a different random song" title="Roll another track">
+        <svg class="i"><use href="assets/icons.svg?v=4#i-shuffle"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="gate-foot">
+    <button class="gate-mute-btn" id="gate-enter-muted" type="button">Enter muted</button>
+  </div>
+</div>
 
 <header class="nav">
   <a class="brand" href="./"><img src="assets/avatar.png" alt="" width="26" height="26">aDuckGod</a>
@@ -41,11 +104,10 @@
   <div class="bento">
     <section class="tile profile" style="--i:0" aria-label="About">
       <div class="who">
-        <span class="avatar">
+        <button class="avatar" type="button" id="duck-avatar-btn" aria-label="Say hi to duck">
           <span class="avatar-ring"></span>
           <img src="assets/avatar.png" alt="" width="64" height="64" fetchpriority="high" onerror="this.onerror=null;this.src='assets/duck.svg';this.className='is-fallback'">
-          <span class="presence"></span>
-        </span>
+        </button>
         <span>
           <span class="who-name">aDuckGod</span>
           <span class="who-role">Discord bot developer</span>
@@ -58,29 +120,95 @@
       </p>
       <p class="bio">Mostly for Roblox roleplay servers: session systems, setup wizards and role-gated buttons, all in Python.</p>
       <div class="actions">
-        <a class="btn btn-primary" href="portfolio.html">View portfolio<svg class="i go"><use href="assets/icons.svg?v=3#i-arrow"/></svg></a>
-        <a class="btn btn-ghost" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener"><svg class="i"><use href="assets/icons.svg?v=3#i-discord"/></svg>Join Discord</a>
+        <a class="btn btn-primary" href="portfolio.html">View portfolio<svg class="i go"><use href="assets/icons.svg?v=4#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener"><svg class="i"><use href="assets/icons.svg?v=4#i-discord"/></svg>Join Discord</a>
       </div>
     </section>
 
-    <section class="tile status" style="--i:1" aria-label="Discord status">
+    <section class="tile commissions" style="--i:1" aria-label="Commissions">
       <div class="tile-top">
-        <span class="label">Discord</span>
-        <span class="status-pill" id="presence-pill">
-          <span class="dot" id="presence-dot"></span>
-          <span id="presence-title">Available</span>
-        </span>
+        <span class="label">Commissions</span>
+        <span class="avail-pill"><span class="dot pulse"></span>Open</span>
+      </div>
+      <div>
+        <p class="status-title">Custom bots, built to order</p>
+        <p class="status-sub">Session systems, setup wizards, server setup &amp; hosting.</p>
+      </div>
+      <div class="status-foot">
+        <a class="status-link" href="portfolio.html#pricing">Bots from <b>$5</b><svg class="i go"><use href="assets/icons.svg?v=4#i-arrow"/></svg></a>
+        <span class="turnaround">2–5 day delivery</span>
+      </div>
+    </section>
+
+    <a class="tile feature" href="portfolio.html#greenville" style="--i:2">
+      <div class="tile-top">
+        <span class="label">Featured project</span>
+        <span class="arrow-circle"><svg class="i"><use href="assets/icons.svg?v=4#i-arrow"/></svg></span>
+      </div>
+      <div>
+        <h2>Greenville Roleplay Bot</h2>
+        <p>Multi-server session bot with a setup wizard and role-gated join buttons.</p>
+      </div>
+      <div class="chips"><span class="chip">/startup</span><span class="chip">/ea</span><span class="chip">/release</span><span class="chip">/config wizard</span></div>
+    </a>
+  </div>
+
+  <!-- Standalone Discord Profile & Live Rich Activity widget (guns.lol style) -->
+  <section class="tile dc-presence" id="discord-card" data-activity="idle" style="--i:3" aria-label="Discord Profile and Live Activity">
+    <div class="dc-prof">
+      <a class="dc-prof-link" id="dc-profile-link" href="https://discord.com/users/1131237914957840525" target="_blank" rel="noopener" aria-label="Open aDuckGod's Discord profile"></a>
+
+      <div class="dc-prof-av" id="dc-prof-av">
+        <img class="dc-prof-img" id="dc-avatar" src="assets/avatar.png" alt="aDuckGod Discord avatar" width="56" height="56" onerror="this.onerror=null;this.src='assets/avatar.png'">
+        <img class="dc-prof-deco" id="dc-deco" alt="" hidden>
+        <span class="dc-prof-badge" id="dc-status-badge" data-status="syncing" aria-hidden="true"></span>
       </div>
 
-      <div class="status-fallback" id="presence-fallback">
-        <p class="status-title">Open for commissions</p>
-        <p class="status-sub" id="presence-sub">Custom bots, server setup and hosting.</p>
+      <div class="dc-prof-info">
+        <div class="dc-prof-name-row">
+          <span class="dc-prof-name" id="dc-display">aDuckGod</span>
+          <span class="dc-guild-tag" id="dc-guild-tag" hidden>
+            <img id="dc-guild-badge" alt="" width="14" height="14" hidden>
+            <span id="dc-guild-text"></span>
+          </span>
+          <span class="dc-devices" id="dc-devices"></span>
+          <span class="dc-prof-out" aria-hidden="true"><svg class="i"><use href="assets/icons.svg?v=4#i-out"/></svg></span>
+        </div>
+
+        <div class="dc-prof-sub-row">
+          <span class="dc-prof-handle" id="dc-handle">@a_duckgod</span>
+          <button class="dc-copy-btn" type="button" data-copy-discord aria-label="Copy Discord username" title="Copy username">
+            <svg class="i ic-copy"><use href="assets/icons.svg?v=4#i-copy"/></svg>
+            <svg class="i ic-check"><use href="assets/icons.svg?v=4#i-check"/></svg>
+          </button>
+          <span class="status-pill" id="presence-pill">
+            <span class="dot" id="presence-dot"></span>
+            <span id="presence-title">Syncing…</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dc-presence-sep" aria-hidden="true"></div>
+
+    <div class="dc-act-zone">
+      <div class="dc-act-head">
+        <span class="label"><svg class="i"><use href="assets/icons.svg?v=4#i-discord"/></svg>Discord Activity</span>
+        <span class="live" id="presence-live" hidden><span class="dot pulse"></span>Live</span>
+      </div>
+
+      <div class="dc-act-idle" id="presence-idle">
+        <span class="dc-idle-ic" aria-hidden="true"><svg><use href="assets/icons.svg?v=4#i-discord"/></svg></span>
+        <div class="dc-idle-txt">
+          <p class="dc-idle-title" id="presence-idle-title">Checking live status…</p>
+          <p class="dc-idle-sub" id="presence-sub">Click my profile to open Discord</p>
+        </div>
       </div>
 
       <div class="activity" id="presence-activity" hidden>
         <div class="act-art" id="act-art">
           <img id="act-img" alt="" hidden>
-          <svg class="act-ic" id="act-ic" aria-hidden="true"><use href="assets/icons.svg?v=3#i-gamepad"/></svg>
+          <svg class="act-ic" id="act-ic" aria-hidden="true"><use href="assets/icons.svg?v=4#i-gamepad"/></svg>
           <img class="act-small" id="act-small" alt="" hidden>
         </div>
         <div class="act-body">
@@ -93,50 +221,35 @@
           <div class="act-bar" id="act-bar" hidden><span id="act-bar-fill"></span></div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="status-foot">
-        <a class="status-link" href="portfolio.html#pricing">Bots from <b>$5</b><svg class="i go"><use href="assets/icons.svg?v=3#i-arrow"/></svg></a>
-        <span class="live" id="presence-live" hidden><span class="dot pulse"></span>Live</span>
-      </div>
-    </section>
-
-    <a class="tile feature" href="portfolio.html#greenville" style="--i:2">
-      <div class="tile-top">
-        <span class="label">Featured project</span>
-        <span class="arrow-circle"><svg class="i"><use href="assets/icons.svg?v=3#i-arrow"/></svg></span>
-      </div>
-      <div>
-        <h2>Greenville Roleplay Bot</h2>
-        <p>Multi-server session bot with a setup wizard and role-gated join buttons.</p>
-      </div>
-      <div class="chips"><span class="chip">/startup</span><span class="chip">/ea</span><span class="chip">/release</span><span class="chip">/config wizard</span></div>
-    </a>
-
-    <a class="tile social" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener" style="--i:3;--c:#5865f2">
-      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-discord"/></svg></span>
-      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+  <div class="social-row">
+    <a class="tile social" href="https://discord.gg/JS3cuBQaef" target="_blank" rel="noopener" style="--i:4;--c:#5865f2">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=4#i-discord"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=4#i-out"/></svg>
       <span class="social-txt"><b>Discord</b><span>Join server</span></span>
     </a>
-    <a class="tile social" href="https://github.com/a-DuckGod" target="_blank" rel="noopener" style="--i:4;--c:#f0f6fc;--on:#0d1117">
-      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-github"/></svg></span>
-      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+    <a class="tile social" href="https://github.com/a-DuckGod" target="_blank" rel="noopener" style="--i:5;--c:#f0f6fc;--on:#0d1117">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=4#i-github"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=4#i-out"/></svg>
       <span class="social-txt"><b>GitHub</b><span>Code &amp; projects</span></span>
     </a>
-    <a class="tile social" href="https://www.youtube.com/@aDuckGod" target="_blank" rel="noopener" style="--i:5;--c:#ff3040">
-      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-youtube"/></svg></span>
-      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+    <a class="tile social" href="https://www.youtube.com/@aDuckGod" target="_blank" rel="noopener" style="--i:6;--c:#ff3040">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=4#i-youtube"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=4#i-out"/></svg>
       <span class="social-txt"><b>YouTube</b><span>Videos</span></span>
     </a>
-    <a class="tile social" href="https://www.twitch.tv/a_duckgod" target="_blank" rel="noopener" style="--i:6;--c:#a970ff">
-      <span class="social-ic"><svg><use href="assets/icons.svg?v=3#i-twitch"/></svg></span>
-      <svg class="i corner"><use href="assets/icons.svg?v=3#i-out"/></svg>
+    <a class="tile social" href="https://www.twitch.tv/a_duckgod" target="_blank" rel="noopener" style="--i:7;--c:#a970ff">
+      <span class="social-ic"><svg><use href="assets/icons.svg?v=4#i-twitch"/></svg></span>
+      <svg class="i corner"><use href="assets/icons.svg?v=4#i-out"/></svg>
       <span class="social-txt"><b>Twitch</b><span>Streams</span></span>
     </a>
   </div>
 
   <footer class="home-foot">
     <span>© <span data-year>2026</span> aDuckGod</span>
-    <span class="hint">Press <kbd>/</kbd> for commands</span>
+    <span class="hint">Press <kbd>/</kbd> for commands · <kbd>M</kbd> mute</span>
   </footer>
 </main>
 
