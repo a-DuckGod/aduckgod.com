@@ -7,3 +7,5 @@
 CNAME
 README.md
 worker.js
+wrangler.jsonc
+.wrangler
