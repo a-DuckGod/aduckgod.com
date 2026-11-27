@@ -75,7 +75,8 @@ if (!$('#enter-gate')) {
   try { sessionStorage.setItem('adg_entered', '1'); } catch {}
 }
 
-const go = (path) => { location.href = path; };
+let spaNavigate = (path) => { location.href = path; };
+const go = (path) => spaNavigate(path);
 const openTab = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
 const fmtSec = (sec) => {
@@ -123,35 +124,21 @@ const copyDiscord = async (btn) => {
   }
 };
 
-$$('[data-copy-discord]').forEach((el) => el.addEventListener('click', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  copyDiscord(el);
-}));
-$$('a[data-soon]').forEach((a) => a.addEventListener('click', (e) => {
-  e.preventDefault();
-  toast(a.dataset.soon || 'Link coming soon');
-}));
-$$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
-
-// Playful duck avatar easter egg
-const duckAvatarBtn = $('#duck-avatar-btn');
-if (duckAvatarBtn) {
-  const QUACKS = [
-    'quack.',
-    'bucket secured.',
-    'written in python at 3am',
-    'duck approved.',
-    '7+ reactions needed',
-    'press / for commands',
-  ];
-  let quackIdx = 0;
-  duckAvatarBtn.addEventListener('click', (e) => {
-    toast(QUACKS[quackIdx % QUACKS.length]);
-    quackIdx++;
-    spawnWaterRipple(e.clientX, e.clientY);
-  });
-}
+// Persistent delegated handlers (survive SPA page swaps automatically)
+document.addEventListener('click', (e) => {
+  const copyBtn = e.target.closest?.('[data-copy-discord]');
+  if (copyBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    copyDiscord(copyBtn);
+    return;
+  }
+  const soonLink = e.target.closest?.('a[data-soon]');
+  if (soonLink) {
+    e.preventDefault();
+    toast(soonLink.dataset.soon || 'Link coming soon');
+  }
+});
 
 function spawnWaterRipple(cx, cy) {
   if (reduceMotion || !cx || !cy) return;
@@ -163,75 +150,14 @@ function spawnWaterRipple(cx, cy) {
   setTimeout(() => r.remove(), 780);
 }
 
-// Fade sections in as they scroll into view
-const reveals = $$('.reveal');
-if (reveals.length && !reduceMotion && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      entry.target.classList.add('in');
-      io.unobserve(entry.target);
-    }
-  }, { rootMargin: '0px 0px -10px 0px', threshold: 0.01 });
-  reveals.forEach((el) => io.observe(el));
-} else {
-  reveals.forEach((el) => el.classList.add('in'));
-}
+// Persistent reflective cursor lighting, subtle 3D glass tilt & ambient water click ripples
+const tileFx = (() => {
+  if (!finePointer || reduceMotion) return { refresh() {}, clear() {} };
 
-// Rotating "I make ..." word (pauses when tab is hidden or enter gate is up)
-const rot = $('[data-rotate]');
-if (rot && !reduceMotion) {
-  const words = rot.dataset.rotate.split('|');
-  let index = 0;
-  let rotTimer = 0;
-  let swapTimer = 0;
-
-  const stopRot = () => {
-    clearTimeout(rotTimer);
-    clearTimeout(swapTimer);
-    rotTimer = 0;
-    swapTimer = 0;
-    rot.classList.remove('out', 'in');
-  };
-
-  const scheduleRot = () => {
-    if (document.hidden || document.documentElement.classList.contains('gate-pending')) return;
-    clearTimeout(rotTimer);
-    rotTimer = setTimeout(() => {
-      if (document.hidden || document.documentElement.classList.contains('gate-pending')) return;
-      rot.classList.add('out');
-      swapTimer = setTimeout(() => {
-        index = (index + 1) % words.length;
-        rot.textContent = words[index];
-        rot.classList.replace('out', 'in');
-        void rot.offsetWidth;
-        rot.classList.remove('in');
-        scheduleRot();
-      }, 300);
-    }, 2600);
-  };
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stopRot();
-    else scheduleRot();
-  });
-  document.addEventListener('adg:entered', scheduleRot);
-  scheduleRot();
-}
-
-// Reflective cursor lighting, subtle 3D glass tilt & ambient water click ripples
-if (finePointer && !reduceMotion) {
   const spot = $('.bg-spot');
-  const tiles = $$('.tile');
-  const tiltable = new Set($$('.profile, .commissions, .feature, .dc-presence, .social, .price, .card, .nf-card'));
   const fxByTile = new Map();
-  tiles.forEach((el) => {
-    const fx = document.createElement('span');
-    fx.className = 'tile-fx';
-    fx.setAttribute('aria-hidden', 'true');
-    el.prepend(fx);
-    fxByTile.set(el, fx);
-  });
+  let tiles = [];
+  let tiltable = new Set();
 
   const lit = new Set();
   const tilted = new Set();
@@ -265,8 +191,6 @@ if (finePointer && !reduceMotion) {
       };
     });
   };
-  new ResizeObserver(() => { boxes = null; lastPx = NaN; }).observe(document.body);
-  document.fonts?.ready?.then(() => { boxes = null; lastPx = NaN; });
 
   const clearLighting = () => {
     active = false;
@@ -282,6 +206,27 @@ if (finePointer && !reduceMotion) {
     });
     tilted.clear();
   };
+
+  const refresh = () => {
+    clearLighting();
+    fxByTile.clear();
+    tiles = $$('.tile');
+    tiltable = new Set($$('.profile, .commissions, .feature, .dc-presence, .social, .price, .card, .nf-card'));
+    tiles.forEach((el) => {
+      let fx = el.querySelector(':scope > .tile-fx');
+      if (!fx) {
+        fx = document.createElement('span');
+        fx.className = 'tile-fx';
+        fx.setAttribute('aria-hidden', 'true');
+        el.prepend(fx);
+      }
+      fxByTile.set(el, fx);
+    });
+    boxes = null;
+  };
+
+  new ResizeObserver(() => { boxes = null; lastPx = NaN; }).observe(document.body);
+  document.fonts?.ready?.then(() => { boxes = null; lastPx = NaN; });
 
   const render = () => {
     frame = 0;
@@ -359,11 +304,97 @@ if (finePointer && !reduceMotion) {
     if (e.target.closest('a, button, input, .music-dock, .palette, .lightbox, .dc')) return;
     spawnWaterRipple(e.clientX, e.clientY);
   });
+
+  return { refresh, clear: clearLighting };
+})();
+
+// Page-scoped mounts (re-initialized cleanly on every SPA page swap)
+function mountDuckAvatar(signal) {
+  const duckAvatarBtn = $('#duck-avatar-btn');
+  if (!duckAvatarBtn) return;
+  const QUACKS = [
+    'quack.',
+    'bucket secured.',
+    'written in python at 3am',
+    'duck approved.',
+    '7+ reactions needed',
+    'press / for commands',
+  ];
+  let quackIdx = 0;
+  duckAvatarBtn.addEventListener('click', (e) => {
+    toast(QUACKS[quackIdx % QUACKS.length]);
+    quackIdx++;
+    spawnWaterRipple(e.clientX, e.clientY);
+  }, { signal });
 }
 
-// Standalone Discord Profile & Live Rich Activity (Lanyard WebSocket + REST fallback)
-const discordCard = $('#discord-card');
-if (discordCard && CONFIG.discordId) {
+function mountReveals(cleanups) {
+  const reveals = $$('.reveal');
+  if (!reveals.length) return;
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    }, { rootMargin: '0px 0px -10px 0px', threshold: 0.01 });
+    reveals.forEach((el) => io.observe(el));
+    cleanups.push(() => io.disconnect());
+  } else {
+    reveals.forEach((el) => el.classList.add('in'));
+  }
+}
+
+function mountRotateWord(signal, cleanups) {
+  const rot = $('[data-rotate]');
+  if (!rot || reduceMotion) return;
+  const words = rot.dataset.rotate.split('|');
+  let index = 0;
+  let rotTimer = 0;
+  let swapTimer = 0;
+
+  const stopRot = () => {
+    clearTimeout(rotTimer);
+    clearTimeout(swapTimer);
+    rotTimer = 0;
+    swapTimer = 0;
+    rot.classList.remove('out', 'in');
+  };
+
+  const scheduleRot = () => {
+    if (signal.aborted || document.hidden || document.documentElement.classList.contains('gate-pending')) return;
+    clearTimeout(rotTimer);
+    rotTimer = setTimeout(() => {
+      if (signal.aborted || document.hidden || document.documentElement.classList.contains('gate-pending')) return;
+      rot.classList.add('out');
+      swapTimer = setTimeout(() => {
+        if (signal.aborted) return;
+        index = (index + 1) % words.length;
+        rot.textContent = words[index];
+        rot.classList.replace('out', 'in');
+        void rot.offsetWidth;
+        rot.classList.remove('in');
+        scheduleRot();
+      }, 300);
+    }, 2600);
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopRot();
+    else scheduleRot();
+  }, { signal });
+  document.addEventListener('adg:entered', scheduleRot, { signal });
+  cleanups.push(stopRot);
+  scheduleRot();
+}
+
+// Standalone Discord Profile & Live Rich Activity (Lanyard WebSocket + REST fallback + instant cached hydration)
+let cachedPresence = null;
+function mountDiscordPresence(signal, cleanups) {
+  const discordCard = $('#discord-card');
+  if (!discordCard || !CONFIG.discordId) return;
+
   const STATUS = {
     online: ['Online', '--ok'],
     idle: ['Idle', '--idle'],
@@ -405,7 +436,7 @@ if (discordCard && CONFIG.discordId) {
       if (!dcAvatar.src.endsWith('/assets/avatar.png') && dcAvatar.getAttribute('src') !== 'assets/avatar.png') {
         dcAvatar.src = 'assets/avatar.png';
       }
-    });
+    }, { signal });
   }
 
   let activeTimestamps = null;
@@ -462,7 +493,7 @@ if (discordCard && CONFIG.discordId) {
   };
 
   const tickTime = (snap = false) => {
-    if (!activeTimestamps?.start || document.hidden) return;
+    if (signal.aborted || !activeTimestamps?.start || document.hidden) return;
     const now = Date.now();
     if (isSpotify && activeTimestamps.end) {
       const total = Math.max(1000, activeTimestamps.end - activeTimestamps.start);
@@ -498,20 +529,20 @@ if (discordCard && CONFIG.discordId) {
   const syncTickTimer = () => {
     clearInterval(tickTimer);
     tickTimer = 0;
-    if (activeTimestamps?.start && !document.hidden) {
+    if (!signal.aborted && activeTimestamps?.start && !document.hidden) {
       tickTimer = setInterval(() => tickTime(false), 1000);
     }
   };
 
   const renderPresence = (data) => {
-    if (!data) return;
+    if (!data || signal.aborted) return;
+    cachedPresence = data;
     const statusKey = STATUS[data.discord_status] ? data.discord_status : 'offline';
     const [label, color] = STATUS[statusKey];
     document.documentElement.style.setProperty('--presence', `var(${color})`);
     if (presenceTitle) presenceTitle.textContent = label;
     if (dcStatusBadge) dcStatusBadge.dataset.status = statusKey;
 
-    // Profile identity (live avatar, decoration, display name, guild tag, devices)
     const user = data.discord_user;
     if (user) {
       if (dcDisplay) dcDisplay.textContent = user.global_name || user.display_name || user.username || 'aDuckGod';
@@ -570,7 +601,6 @@ if (discordCard && CONFIG.discordId) {
       }
     }
 
-    // Active platform icons (wrapped in span for proper native hover tooltips)
     if (dcDevices) {
       const icons = [];
       if (data.active_on_discord_desktop) icons.push(`<span title="Active on Desktop"><svg aria-hidden="true"><use href="${ICONS}#i-desktop"/></svg></span>`);
@@ -579,10 +609,8 @@ if (discordCard && CONFIG.discordId) {
       dcDevices.innerHTML = icons.join('');
     }
 
-    // Rich Activity (filter out custom status type 4 and hang status type 6)
     const activities = data.activities || [];
     const game = activities.find((a) => a.type !== 4 && a.type !== 6 && a.id !== 'spotify:1');
-    const custom = activities.find((a) => a.type === 4 && a.state);
     const device = data.active_on_discord_desktop ? 'Desktop' : data.active_on_discord_mobile ? 'Mobile' : data.active_on_discord_web ? 'Web' : '';
 
     if (data.listening_to_spotify && data.spotify) {
@@ -652,29 +680,29 @@ if (discordCard && CONFIG.discordId) {
   };
 
   const showOfflineFallback = () => {
-    if (hasPresence) return;
+    if (hasPresence || signal.aborted) return;
     if (presenceTitle) presenceTitle.textContent = 'Offline';
     if (dcStatusBadge) dcStatusBadge.dataset.status = 'offline';
     document.documentElement.style.setProperty('--presence', 'var(--off)');
   };
 
   const fetchPresence = async () => {
-    if (document.hidden) return;
+    if (document.hidden || signal.aborted) return;
     try {
-      const res = await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`);
+      const res = await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`, { signal });
       if (!res.ok) {
         if (!wsConnected) showOfflineFallback();
         return;
       }
       const { success, data } = await res.json();
+      if (signal.aborted) return;
       if (success) renderPresence(data);
       else if (!wsConnected) showOfflineFallback();
     } catch {
-      if (!wsConnected) showOfflineFallback();
+      if (!wsConnected && !signal.aborted) showOfflineFallback();
     }
   };
 
-  // Real-time Lanyard WebSocket with automatic REST fallback
   let ws = null;
   let hbTimer = 0;
   let reconnectTimer = 0;
@@ -694,12 +722,13 @@ if (discordCard && CONFIG.discordId) {
   };
 
   const connectWS = () => {
-    if (typeof WebSocket === 'undefined' || document.hidden) return;
+    if (signal.aborted || typeof WebSocket === 'undefined' || document.hidden) return;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     closingForUnload = false;
     try {
       ws = new WebSocket('wss://api.lanyard.rest/socket');
       ws.addEventListener('message', (ev) => {
+        if (signal.aborted) return;
         let msg;
         try { msg = JSON.parse(ev.data); } catch { return; }
         if (msg.op === 1 && msg.d?.heartbeat_interval) {
@@ -718,7 +747,7 @@ if (discordCard && CONFIG.discordId) {
         ws = null;
         clearInterval(hbTimer);
         hbTimer = 0;
-        if (!closingForUnload && !document.hidden) {
+        if (!closingForUnload && !signal.aborted && !document.hidden) {
           clearTimeout(reconnectTimer);
           reconnectTimer = setTimeout(connectWS, 15000);
         }
@@ -731,35 +760,48 @@ if (discordCard && CONFIG.discordId) {
     }
   };
 
+  // Instant 0ms hydration when returning to Home from Portfolio
+  if (cachedPresence) renderPresence(cachedPresence);
   fetchPresence();
   connectWS();
-  setTimeout(showOfflineFallback, 6000);
-  setInterval(() => { if (!wsConnected && !document.hidden) fetchPresence(); }, 30000);
+  const offlineFallbackTimer = setTimeout(showOfflineFallback, 6000);
+  const pollTimer = setInterval(() => { if (!wsConnected && !document.hidden) fetchPresence(); }, 30000);
+  let visTimer = 0;
+
   document.addEventListener('visibilitychange', () => {
     syncTickTimer();
     if (!document.hidden) {
       tickTime(false);
       if (!wsConnected) {
-        setTimeout(() => {
-          if (!document.hidden && !wsConnected) {
+        clearTimeout(visTimer);
+        visTimer = setTimeout(() => {
+          if (!signal.aborted && !document.hidden && !wsConnected) {
             fetchPresence();
             connectWS();
           }
         }, 250);
       }
     }
-  });
+  }, { signal });
   addEventListener('pagehide', () => {
     clearInterval(tickTimer);
     tickTimer = 0;
     disconnectWS();
-  });
+  }, { signal });
   addEventListener('pageshow', (e) => {
-    if (e.persisted) {
+    if (e.persisted && !signal.aborted) {
       fetchPresence();
       connectWS();
       syncTickTimer();
     }
+  }, { signal });
+
+  cleanups.push(() => {
+    clearInterval(tickTimer);
+    clearInterval(pollTimer);
+    clearTimeout(offlineFallbackTimer);
+    clearTimeout(visTimer);
+    disconnectWS();
   });
 }
 
@@ -1043,6 +1085,14 @@ const music = (() => {
 
   const attachAnalyser = () => {
     if (!useCors || reduceMotion || document.hidden || !playing) return;
+    if (audioCtx && analyser && streamSrc) {
+      dock.classList.add('has-analyser');
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      if (!eqRaf) eqRaf = requestAnimationFrame(pumpEq);
+      return;
+    }
     const capture = audio.captureStream || audio.mozCaptureStream;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (typeof capture !== 'function' || !Ctx) return;
@@ -1752,9 +1802,10 @@ addEventListener('keydown', (e) => {
   }
 });
 
-// Discord demo on the portfolio page
-const chat = $('#chat');
-if (chat) {
+// Discord demo on the portfolio page (page-scoped)
+function mountChatDemo(signal, cleanups) {
+  const chat = $('#chat');
+  if (!chat) return;
   const log = $('.dc-log', chat);
   const startup = $('#startup', chat);
   const ea = $('#ea', chat);
@@ -1797,16 +1848,17 @@ if (chat) {
   };
 
   const triggerSessionFlow = () => {
-    if (goalReached) return;
+    if (goalReached || signal.aborted) return;
     goalReached = true;
     clearTimers();
     timers.push(setTimeout(() => {
-      revealMsg(ea);
+      if (!signal.aborted) revealMsg(ea);
     }, 1000));
     timers.push(setTimeout(() => {
-      typing.classList.add('on');
+      if (!signal.aborted) typing.classList.add('on');
     }, 6800));
     timers.push(setTimeout(() => {
+      if (signal.aborted) return;
       typing.classList.remove('on');
       revealMsg(release);
     }, 8000));
@@ -1822,15 +1874,16 @@ if (chat) {
       $('[data-code-text]', codeBlock).textContent = code;
       const copyBtn = $('[data-copy-code]', codeBlock);
       copyBtn.dataset.copyCode = code;
-      copyBtn.addEventListener('click', () => copyText(code, `Copied ${code}`, `Private server code: ${code}`));
+      copyBtn.addEventListener('click', () => copyText(code, `Copied ${code}`, `Private server code: ${code}`), { signal });
       codeBlock.hidden = false;
     }
-    $('[data-dismiss]', msg).addEventListener('click', () => msg.remove());
+    $('[data-dismiss]', msg).addEventListener('click', () => msg.remove(), { signal });
     log.append(msg);
     log.scrollTop = log.scrollHeight;
   };
 
   const play = () => {
+    if (signal.aborted) return;
     clearTimers();
     clearReplies();
     typing.classList.remove('on');
@@ -1854,10 +1907,11 @@ if (chat) {
     release.classList.add('is-pending');
     typing.classList.add('on');
     timers.push(setTimeout(() => {
+      if (signal.aborted) return;
       typing.classList.remove('on');
       revealMsg(startup);
       timers.push(setTimeout(() => {
-        if (goalReached) return;
+        if (signal.aborted || goalReached) return;
         baseCount = 7;
         syncCount();
         triggerSessionFlow();
@@ -1865,15 +1919,15 @@ if (chat) {
     }, 1100));
   };
 
-  $('[data-act="ea"]', chat)?.addEventListener('click', () => reply(REPLIES.ea[role]));
-  $('[data-act="join"]', chat)?.addEventListener('click', () => reply(REPLIES.join));
-  $('#replay')?.addEventListener('click', play);
+  $('[data-act="ea"]', chat)?.addEventListener('click', () => reply(REPLIES.ea[role]), { signal });
+  $('[data-act="join"]', chat)?.addEventListener('click', () => reply(REPLIES.join), { signal });
+  $('#replay')?.addEventListener('click', play, { signal });
 
   reactBtn?.addEventListener('click', () => {
     userReacted = !userReacted;
     syncCount();
     if (baseCount + (userReacted ? 1 : 0) >= 7) triggerSessionFlow();
-  });
+  }, { signal });
 
   $$('[data-role]').forEach((btn) => btn.addEventListener('click', () => {
     role = btn.dataset.role;
@@ -1881,105 +1935,121 @@ if (chat) {
     gem.toggleAttribute('hidden', role !== 'booster');
     ea.classList.toggle('is-mentioned', role === 'booster');
     clearReplies();
-  }));
+  }, { signal }));
 
-  new IntersectionObserver(([entry], observer) => {
+  const io = new IntersectionObserver(([entry], observer) => {
     if (!entry.isIntersecting) return;
     observer.disconnect();
     play();
-  }, { threshold: 0.35 }).observe(chat);
+  }, { threshold: 0.35 });
+  io.observe(chat);
+  cleanups.push(() => {
+    clearTimers();
+    io.disconnect();
+  });
 }
 
-// Typewriter prompt demo on the AI Media Generation card
-const promptEl = $('[data-prompts]');
-if (promptEl && !reduceMotion) {
+// Typewriter prompt demo on the AI Media Generation card (page-scoped)
+function mountPromptTyper(signal, cleanups) {
+  const promptEl = $('[data-prompts]');
+  if (!promptEl || reduceMotion) return;
   const prompts = promptEl.dataset.prompts.split('|').filter(Boolean);
   const goBtn = promptEl.closest('.prompt')?.querySelector('.prompt-go');
-  if (prompts.length > 1) {
-    let idx = 0;
-    let charIdx = prompts[0].length;
-    let deleting = true;
-    let visible = false;
-    let timer = 0;
+  if (prompts.length <= 1) return;
 
-    const stop = () => {
-      clearTimeout(timer);
-      timer = 0;
-    };
+  let idx = 0;
+  let charIdx = prompts[0].length;
+  let deleting = true;
+  let visible = false;
+  let timer = 0;
+  let pulseTimer = 0;
 
-    const schedule = (ms) => {
-      stop();
-      if (!visible || document.hidden) return;
-      timer = setTimeout(tick, ms);
-    };
+  const stop = () => {
+    clearTimeout(timer);
+    clearTimeout(pulseTimer);
+    timer = 0;
+    pulseTimer = 0;
+  };
 
-    const tick = () => {
-      timer = 0;
-      if (!visible || document.hidden) return;
-      const full = prompts[idx];
-      if (deleting) {
-        promptEl.classList.add('is-typing');
-        charIdx--;
-        promptEl.textContent = full.slice(0, charIdx);
-        if (charIdx > 0) {
-          schedule(18);
-        } else {
-          deleting = false;
-          idx = (idx + 1) % prompts.length;
-          promptEl.classList.remove('is-typing');
-          schedule(420);
-        }
+  const schedule = (ms) => {
+    stop();
+    if (signal.aborted || !visible || document.hidden) return;
+    timer = setTimeout(tick, ms);
+  };
+
+  const tick = () => {
+    timer = 0;
+    if (signal.aborted || !visible || document.hidden) return;
+    const full = prompts[idx];
+    if (deleting) {
+      promptEl.classList.add('is-typing');
+      charIdx--;
+      promptEl.textContent = full.slice(0, charIdx);
+      if (charIdx > 0) {
+        schedule(18);
       } else {
-        promptEl.classList.add('is-typing');
-        charIdx++;
-        promptEl.textContent = full.slice(0, charIdx);
-        if (charIdx < full.length) {
-          schedule(34 + Math.random() * 24);
-        } else {
-          deleting = true;
-          promptEl.classList.remove('is-typing');
-          if (goBtn) {
-            goBtn.classList.add('is-pulse');
-            setTimeout(() => goBtn.classList.remove('is-pulse'), 240);
-          }
-          schedule(2400);
-        }
+        deleting = false;
+        idx = (idx + 1) % prompts.length;
+        promptEl.classList.remove('is-typing');
+        schedule(420);
       }
-    };
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-      else if (visible && !timer) schedule(600);
-    });
-
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([entry]) => {
-        visible = entry.isIntersecting;
-        if (visible && !timer && !document.hidden) schedule(1400);
-        else if (!visible) stop();
-      }, { threshold: 0.25 }).observe(promptEl);
     } else {
-      visible = true;
-      schedule(1800);
+      promptEl.classList.add('is-typing');
+      charIdx++;
+      promptEl.textContent = full.slice(0, charIdx);
+      if (charIdx < full.length) {
+        schedule(34 + Math.random() * 24);
+      } else {
+        deleting = true;
+        promptEl.classList.remove('is-typing');
+        if (goBtn) {
+          goBtn.classList.add('is-pulse');
+          pulseTimer = setTimeout(() => goBtn.classList.remove('is-pulse'), 240);
+        }
+        schedule(2400);
+      }
     }
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else if (visible && !timer) schedule(600);
+  }, { signal });
+
+  let io = null;
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !timer && !document.hidden) schedule(1400);
+      else if (!visible) stop();
+    }, { threshold: 0.25 });
+    io.observe(promptEl);
+  } else {
+    visible = true;
+    schedule(1800);
   }
+
+  cleanups.push(() => {
+    stop();
+    io?.disconnect();
+  });
 }
 
-// Screenshot lightbox (click + keyboard accessible)
-const shots = $$('.shot img');
-if (shots.length) {
+// Persistent screenshot lightbox (delegated across SPA swaps, click + keyboard accessible)
+const lightbox = (() => {
   let lb = null;
   let lbImg = null;
   let lbCap = null;
   let lbCloseBtn = null;
   let lbLastFocus = null;
 
-  const closeLb = () => {
+  const close = (restoreFocus = true) => {
     if (!lb?.classList.contains('open')) return;
     lb.classList.remove('open');
-    lbLastFocus?.focus?.();
+    if (restoreFocus && lbLastFocus?.isConnected) lbLastFocus.focus?.();
   };
-  const openLb = (img) => {
+
+  const open = (img) => {
     music?.closeQueue(false);
     if (palette.isOpen) palette.close();
     lbLastFocus = document.activeElement;
@@ -1993,8 +2063,8 @@ if (shots.length) {
       lbImg = $('img', lb);
       lbCap = $('.lightbox-cap', lb);
       lbCloseBtn = $('.lightbox-close', lb);
-      lbCloseBtn.addEventListener('click', closeLb);
-      lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
+      lbCloseBtn.addEventListener('click', () => close(true));
+      lb.addEventListener('click', (e) => { if (e.target === lb) close(true); });
       document.body.append(lb);
     }
     lbImg.src = img.currentSrc || img.src;
@@ -2004,29 +2074,291 @@ if (shots.length) {
     lbCloseBtn?.focus();
   };
 
-  shots.forEach((img) => {
-    const fig = img.closest('.shot');
-    const trigger = () => {
-      if (fig.classList.contains('empty')) return;
-      openLb(img);
-    };
-    fig.addEventListener('click', trigger);
-    fig.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        trigger();
-      }
-    });
-  });
+  const triggerFrom = (target) => {
+    const fig = target?.closest?.('.shot');
+    if (!fig || fig.classList.contains('empty')) return false;
+    const img = $('img', fig);
+    if (!img) return false;
+    open(img);
+    return true;
+  };
 
-  addEventListener('keydown', (e) => {
-    if (!lb?.classList.contains('open')) return;
-    if (e.key === 'Escape') {
+  document.addEventListener('click', (e) => {
+    if (e.target.closest?.('.shot')) triggerFrom(e.target);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (lb?.classList.contains('open')) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close(true);
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        lbCloseBtn?.focus();
+      }
+      return;
+    }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target?.matches?.('.shot')) {
       e.preventDefault();
-      closeLb();
-    } else if (e.key === 'Tab') {
-      e.preventDefault();
-      lbCloseBtn?.focus();
+      triggerFrom(e.target);
     }
   });
-}
+
+  return { open, close, get isOpen() { return !!lb?.classList.contains('open'); } };
+})();
+
+// Instant SPA Soft-Navigation Router (keeps <audio>, .music-dock, .bg, and <header.nav> alive across Home <-> Portfolio)
+const router = (() => {
+  const pageCache = new Map();
+  const inflight = new Map();
+  let pageAC = null;
+  let pageCleanups = [];
+  let navSeq = 0;
+
+  const normalizeRoute = (urlObj) => {
+    if (!urlObj || urlObj.origin !== location.origin) return null;
+    const p = urlObj.pathname.replace(/\/+$/, '') || '/';
+    if (p === '/' || p === '/index.html') return '/';
+    if (p === '/portfolio.html' || p === '/portfolio') return '/portfolio.html';
+    return null;
+  };
+
+  let currentRoute = normalizeRoute(new URL(location.href));
+
+  const collectExtraStyles = (doc) =>
+    $$('link[rel="stylesheet"][href]', doc)
+      .map((l) => l.getAttribute('href'))
+      .filter((href) => href && /^https?:\/\//i.test(href));
+
+  const ensureStyles = (hrefs = []) => {
+    for (const href of hrefs) {
+      if (document.head.querySelector(`link[rel="stylesheet"][href="${CSS.escape(href)}"]`)) continue;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.append(link);
+    }
+  };
+
+  const extractPage = (doc) => {
+    const main = doc.querySelector('main');
+    if (!main) return null;
+    const foot = doc.querySelector('footer.site-foot');
+    const desc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    return {
+      title: doc.title || document.title,
+      description: desc,
+      mainClass: main.className,
+      mainHTML: main.innerHTML,
+      footHTML: foot ? foot.outerHTML : '',
+      extraStyles: collectExtraStyles(doc),
+    };
+  };
+
+  // Seed cache with the clean initial DOM BEFORE mountPage mutates .tile-fx / .reveal / #chat
+  if (currentRoute) {
+    const initialSnap = extractPage(document);
+    if (initialSnap) pageCache.set(currentRoute, initialSnap);
+  }
+
+  const fetchPage = (route) => {
+    if (pageCache.has(route)) return Promise.resolve(pageCache.get(route));
+    if (inflight.has(route)) return inflight.get(route);
+    const p = fetch(route, { credentials: 'same-origin' })
+      .then((res) => (res.ok ? res.text() : null))
+      .then((html) => {
+        if (!html) return null;
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const entry = extractPage(doc);
+        if (entry) {
+          pageCache.set(route, entry);
+          // Warm extra Google Fonts (e.g. Instrument Serif) in the background before the user clicks
+          ensureStyles(entry.extraStyles);
+        }
+        return entry;
+      })
+      .catch(() => null)
+      .finally(() => inflight.delete(route));
+    inflight.set(route, p);
+    return p;
+  };
+
+  const prefetch = (route) => {
+    if (!route || pageCache.has(route) || inflight.has(route)) return;
+    fetchPage(route);
+  };
+
+  const syncNav = (route) => {
+    $$('.nav .tabs a').forEach((a) => {
+      try {
+        const r = normalizeRoute(new URL(a.href, location.href));
+        if (r && r === route) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      } catch {}
+    });
+  };
+
+  const unmountPage = () => {
+    pageAC?.abort();
+    pageAC = null;
+    for (const fn of pageCleanups) {
+      try { fn(); } catch {}
+    }
+    pageCleanups = [];
+    tileFx.clear();
+  };
+
+  const mountPage = () => {
+    unmountPage();
+    pageAC = new AbortController();
+    const { signal } = pageAC;
+    const cleanups = pageCleanups;
+
+    $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
+    mountDuckAvatar(signal);
+    mountReveals(cleanups);
+    mountRotateWord(signal, cleanups);
+    mountDiscordPresence(signal, cleanups);
+    mountChatDemo(signal, cleanups);
+    mountPromptTyper(signal, cleanups);
+    tileFx.refresh();
+  };
+
+  const scrollToHash = (hash, smooth = false) => {
+    if (!hash) return false;
+    const id = decodeURIComponent(hash.slice(1));
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return false;
+    target.scrollIntoView({ behavior: smooth && !reduceMotion ? 'smooth' : 'auto', block: 'start' });
+    return true;
+  };
+
+  const navigate = async (targetUrl, { push = true, restoreScroll = false } = {}) => {
+    let url;
+    try { url = new URL(targetUrl, location.href); } catch { location.href = targetUrl; return; }
+    const route = normalizeRoute(url);
+    if (!route) {
+      location.href = url.href;
+      return;
+    }
+
+    // Same-route click (e.g. clicking active tab or hash jump on current page)
+    if (route === currentRoute) {
+      if (palette.isOpen) palette.close();
+      lightbox.close(false);
+      music?.closeQueue(false);
+      if (url.hash) {
+        if (push && url.hash !== location.hash) history.pushState({ scrollY }, '', route + url.hash);
+        scrollToHash(url.hash, true);
+      } else if (push) {
+        if (location.hash) history.pushState({ scrollY: 0 }, '', route);
+        scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      } else if (restoreScroll && Number.isFinite(history.state?.scrollY)) {
+        scrollTo(0, history.state.scrollY);
+      }
+      return;
+    }
+
+    const seq = ++navSeq;
+    const entry = pageCache.get(route) || await fetchPage(route);
+    if (seq !== navSeq) return;
+    if (!entry) {
+      location.href = url.href;
+      return;
+    }
+
+    if (palette.isOpen) palette.close();
+    lightbox.close(false);
+    music?.closeQueue(false);
+
+    if (push) {
+      try { history.replaceState({ ...(history.state || {}), scrollY }, ''); } catch {}
+    }
+
+    unmountPage();
+    ensureStyles(entry.extraStyles);
+
+    if (push) {
+      history.pushState({ scrollY: 0 }, '', route + url.hash);
+    }
+
+    document.title = entry.title;
+    const descEl = document.querySelector('meta[name="description"]');
+    if (descEl && entry.description) descEl.setAttribute('content', entry.description);
+
+    const oldMain = document.querySelector('main');
+    const newMain = document.createElement('main');
+    newMain.className = entry.mainClass;
+    if (!reduceMotion && !newMain.classList.contains('home')) {
+      newMain.classList.add('page-swap');
+    }
+    newMain.innerHTML = entry.mainHTML;
+
+    if (oldMain) oldMain.replaceWith(newMain);
+    else document.body.append(newMain);
+
+    document.querySelector('footer.site-foot')?.remove();
+    if (entry.footHTML) {
+      newMain.insertAdjacentHTML('afterend', entry.footHTML);
+    }
+
+    currentRoute = route;
+    syncNav(route);
+    try { sessionStorage.setItem('adg_entered', '1'); } catch {}
+
+    mountPage();
+
+    if (url.hash) {
+      if (!scrollToHash(url.hash, false)) scrollTo(0, 0);
+    } else if (restoreScroll && Number.isFinite(history.state?.scrollY)) {
+      scrollTo(0, history.state.scrollY);
+    } else {
+      scrollTo(0, 0);
+    }
+  };
+
+  // Wire command palette go() through SPA router
+  spaNavigate = (path) => navigate(path, { push: true });
+
+  // Intercept internal same-origin links
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest?.('a[href]');
+    if (!a) return;
+    if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.hasAttribute('data-soon')) return;
+    const rawHref = a.getAttribute('href');
+    if (!rawHref || rawHref.startsWith('#')) return;
+    let url;
+    try { url = new URL(a.href, location.href); } catch { return; }
+    const route = normalizeRoute(url);
+    if (!route) return;
+    e.preventDefault();
+    navigate(url.href, { push: true });
+  });
+
+  // Prefetch sibling route on pointer hover / keyboard focus
+  const warmFromTarget = (target) => {
+    const a = target?.closest?.('a[href]');
+    if (!a) return;
+    try {
+      const route = normalizeRoute(new URL(a.href, location.href));
+      if (route && route !== currentRoute) prefetch(route);
+    } catch {}
+  };
+  document.addEventListener('pointerover', (e) => warmFromTarget(e.target), { passive: true });
+  document.addEventListener('focusin', (e) => warmFromTarget(e.target));
+
+  // Browser Back / Forward support
+  addEventListener('popstate', () => {
+    navigate(location.href, { push: false, restoreScroll: true });
+  });
+
+  // Background prefetch of the sibling page shortly after load so even the very first click is instant
+  const sibling = currentRoute === '/' ? '/portfolio.html' : '/';
+  const warmSibling = () => prefetch(sibling);
+  if ('requestIdleCallback' in window) requestIdleCallback(warmSibling, { timeout: 400 });
+  else setTimeout(warmSibling, 250);
+
+  // Initial mount
+  mountPage();
+  return { navigate, prefetch };
+})();
