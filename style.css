@@ -746,6 +746,9 @@ html.gate-pending .home .tile { animation-play-state: paused; }
     linear-gradient(122deg, rgba(88, 101, 242, .11) 0%, transparent 56%, rgba(255, 154, 60, .05) 100%),
     var(--tile);
 }
+.dc-presence[data-activity="idle"] {
+  grid-template-columns: 1fr;
+}
 .dc-presence[data-activity="spotify"] {
   background:
     radial-gradient(70% 55% at 78% 0%, rgba(30, 215, 96, .13), transparent 72%),
@@ -950,31 +953,6 @@ html.gate-pending .home .tile { animation-play-state: paused; }
 
 .dc-act-zone { min-width: 0; display: flex; flex-direction: column; gap: 9px; }
 .dc-act-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-
-.dc-act-idle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 13px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .035);
-  border: 1px solid rgba(255, 255, 255, .085);
-}
-.dc-idle-ic {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
-  color: #9ba3ff;
-  background: rgba(88, 101, 242, .15);
-  border: 1px solid rgba(88, 101, 242, .28);
-}
-.dc-idle-ic svg { width: 19px; height: 19px; }
-.dc-idle-txt { min-width: 0; flex: 1; }
-.dc-idle-title { font-size: 14px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dc-idle-sub { margin-top: 2px; font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .activity {
   display: flex;

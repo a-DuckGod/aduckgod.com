@@ -6,7 +6,6 @@ const CONFIG = {
   // Show raw Discord custom status text when idle/not in a game or Spotify.
   showCustomStatus: false,
   discordInvite: 'https://discord.gg/JS3cuBQaef',
-  demoInvite: 'https://discord.gg/RrHtpRTJe6',
   // Set to true once you place full MP3 files in assets/music/ (automatically falls back to previewSrc if a file is missing).
   useLocalAudio: false,
   // Background soundtrack (5 tracks: Losers Club + CG5).
@@ -302,10 +301,9 @@ if (discordCard && CONFIG.discordId) {
   const dcDevices = $('#dc-devices');
   const dcHandle = $('#dc-handle');
   const presenceTitle = $('#presence-title');
+  const presenceSep = $('#presence-sep');
+  const actZone = $('#presence-act-zone');
   const live = $('#presence-live');
-  const idleBox = $('#presence-idle');
-  const idleTitle = $('#presence-idle-title');
-  const sub = $('#presence-sub');
   const actBox = $('#presence-activity');
   const actImg = $('#act-img');
   const actIc = $('#act-ic');
@@ -502,7 +500,8 @@ if (discordCard && CONFIG.discordId) {
       actTime.hidden = !activeTimestamps?.start;
       actBar.hidden = !(activeTimestamps?.start && activeTimestamps?.end);
       tickTime(trackChanged);
-      idleBox.hidden = true;
+      if (presenceSep) presenceSep.hidden = false;
+      if (actZone) actZone.hidden = false;
       actBox.hidden = false;
     } else if (game) {
       lastSpotifyTrackId = '';
@@ -523,7 +522,8 @@ if (discordCard && CONFIG.discordId) {
       actBar.hidden = true;
       actTime.hidden = !activeTimestamps?.start;
       tickTime();
-      idleBox.hidden = true;
+      if (presenceSep) presenceSep.hidden = false;
+      if (actZone) actZone.hidden = false;
       actBox.hidden = false;
     } else {
       lastSpotifyTrackId = '';
@@ -532,17 +532,8 @@ if (discordCard && CONFIG.discordId) {
       discordCard.dataset.activity = 'idle';
       if (live) live.hidden = true;
       actBox.hidden = true;
-      idleBox.hidden = false;
-      if (CONFIG.showCustomStatus && custom) {
-        idleTitle.textContent = custom.state;
-        sub.textContent = device ? `Active on ${device}` : 'Click my profile to open Discord';
-      } else if (statusKey === 'offline') {
-        idleTitle.textContent = 'Currently offline';
-        sub.textContent = 'Click my profile to open Discord';
-      } else {
-        idleTitle.textContent = device ? `Chilling on ${device}` : 'No active game or Spotify';
-        sub.textContent = device ? 'No active game or Spotify · Click profile to connect' : 'Click my profile to open Discord';
-      }
+      if (presenceSep) presenceSep.hidden = true;
+      if (actZone) actZone.hidden = true;
     }
   };
 
@@ -1289,7 +1280,7 @@ const COMMANDS = [
   { name: 'portfolio', desc: 'Projects, bot demo and pricing', icon: 'grid', run: () => go('/portfolio.html') },
   { name: 'greenville', desc: 'Greenville Roleplay Bot', icon: 'bot', run: () => go('/portfolio.html#greenville') },
   { name: 'pricing', desc: 'What I build and what it costs', icon: 'tag', run: () => go('/portfolio.html#pricing') },
-  { name: 'demo', desc: 'Join the demo server', icon: 'play', tag: '↗', run: () => openTab(CONFIG.demoInvite) },
+  { name: 'demo', desc: 'Try the live bot demo', icon: 'play', run: () => go('/portfolio.html#chat') },
   { name: 'music', desc: 'Play or pause background music', icon: 'music', run: () => music?.togglePlay() },
   { name: 'skip', desc: 'Skip to next random track', icon: 'next', run: () => music?.next({ announce: true }) },
   { name: 'mute', desc: 'Mute or unmute background music', icon: 'mute', run: () => music?.toggleMute(true) },

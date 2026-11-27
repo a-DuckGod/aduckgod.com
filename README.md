@@ -17,7 +17,7 @@ Run it locally with `python -m http.server 8000` and open http://localhost:8000.
 
 ## Editing
 
-- Settings are in `CONFIG` at the top of `script.js`: Discord username, Discord user ID, Discord profile URL, the custom-status toggle, both invites, and the 5-track `tracks` list. The invites and profile URL are also plain links in the HTML, so search for the invite code / user ID and change them there too: my server (`discordInvite`) is in `index.html` and `portfolio.html`, the demo server (`demoInvite`) is in `portfolio.html`, and the Discord share-profile link (`https://discord.com/users/1131237914957840525`) is in `index.html` and `portfolio.html`.
+- Settings are in `CONFIG` at the top of `script.js`: Discord username, Discord user ID, Discord profile URL, Discord server invite, and the 5-track `tracks` list. The invite and profile URL are also plain links in the HTML, so search for the invite code / user ID and change them there too: my server (`discordInvite`) and the Discord share-profile link (`https://discord.com/users/1131237914957840525`) are in `index.html` and `portfolio.html`.
 - Prices: the amounts in the pricing section of `portfolio.html`, plus "Bots from $5" on the Commissions tile in `index.html`.
 - Mods: the aDuckCounter and LumenForge rows in `portfolio.html` have `data-soon`, which shows that text as a toast instead of opening a link. When one goes public, put the real link in `href` and delete `data-soon`.
 - Bot demo: the Discord window on the portfolio page is built in HTML (`#chat` in `portfolio.html`, `.dc` styles in `style.css`). Edit its text there, and the replies and timings in the Discord demo section of `script.js`, so they match what the bot actually says. The bot's profile picture is `assets/bot-avatar.jpg`.

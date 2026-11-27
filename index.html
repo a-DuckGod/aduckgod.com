@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://api.lanyard.rest" crossorigin>
 <link rel="preconnect" href="https://cdn.discordapp.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..500&display=swap">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <script>
   document.documentElement.className = 'js';
   try {
@@ -35,7 +35,7 @@
     }
   } catch (e) {}
 </script>
-<script src="script.js?v=8" defer></script>
+<script src="script.js?v=9" defer></script>
 </head>
 <body>
 <div class="bg" aria-hidden="true">
@@ -189,20 +189,12 @@
       </div>
     </div>
 
-    <div class="dc-presence-sep" aria-hidden="true"></div>
+    <div class="dc-presence-sep" id="presence-sep" aria-hidden="true" hidden></div>
 
-    <div class="dc-act-zone">
+    <div class="dc-act-zone" id="presence-act-zone" hidden>
       <div class="dc-act-head">
         <span class="label"><svg class="i"><use href="assets/icons.svg?v=4#i-discord"/></svg>Discord Activity</span>
         <span class="live" id="presence-live" hidden><span class="dot pulse"></span>Live</span>
-      </div>
-
-      <div class="dc-act-idle" id="presence-idle">
-        <span class="dc-idle-ic" aria-hidden="true"><svg><use href="assets/icons.svg?v=4#i-discord"/></svg></span>
-        <div class="dc-idle-txt">
-          <p class="dc-idle-title" id="presence-idle-title">Checking live status…</p>
-          <p class="dc-idle-sub" id="presence-sub">Click my profile to open Discord</p>
-        </div>
       </div>
 
       <div class="activity" id="presence-activity" hidden>
