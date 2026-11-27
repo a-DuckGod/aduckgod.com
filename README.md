@@ -10,7 +10,7 @@ style.css        reflective liquid-glass styles for every page
 script.js        real-time Lanyard Discord presence, random 5-track background music dock, command menu, bot demo, prompt typer, lightbox
 worker.js        serves 404.html for unmatched routes on Cloudflare Workers Static Assets
 assets/          duck.svg, icons.svg (every icon), avatar.png, bot-avatar.jpg (demo bot),
-                 og.png (link preview, 1200×630), screenshots, optional music/*.mp3
+                 noise.png (grain texture), og.png (link preview, 1200×630), screenshots, optional music/*.webm
 ```
 
 Run it locally with `python -m http.server 8000` and open http://localhost:8000.
@@ -30,13 +30,13 @@ Run it locally with `python -m http.server 8000` and open http://localhost:8000.
 
 Every fresh visit rolls one of the 5 tracks randomly (4 from **Losers Club** + *why did the chicken cross the road?* by **CG5**) with a floating reflective music dock (play/pause, skip/previous, shuffle, mute, volume slider, scrubber, tracklist drawer, and minimize orb).
 
-Out of the box, the player streams Spotify's official public previews so it works immediately with zero audio files required and zero console 404s. To serve your own full-length high-quality MP3 files instead, drop them into `assets/music/` using these exact filenames and flip `useLocalAudio: true` in `CONFIG` at the top of `script.js`:
+Out of the box, the player streams Spotify's official public previews so it works immediately with zero audio files required and zero console 404s. To serve your own full-length high-quality WebM (Opus) files instead, drop them into `assets/music/` using these exact filenames and flip `useLocalAudio: true` in `CONFIG` at the top of `script.js`:
 
-- `assets/music/losers-wish.mp3`
-- `assets/music/losers-love.mp3`
-- `assets/music/losers-loss.mp3`
-- `assets/music/winners-return.mp3`
-- `assets/music/why-did-the-chicken-cross-the-road.mp3`
+- `assets/music/losers-wish.webm`
+- `assets/music/losers-love.webm`
+- `assets/music/losers-loss.webm`
+- `assets/music/winners-return.webm`
+- `assets/music/why-did-the-chicken-cross-the-road.webm`
 
 ## Live Discord Profile & Activity
 
