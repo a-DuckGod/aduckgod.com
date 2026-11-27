@@ -6,8 +6,8 @@ const CONFIG = {
   // Show raw Discord custom status text when idle/not in a game or Spotify.
   showCustomStatus: false,
   discordInvite: 'https://discord.gg/JS3cuBQaef',
-  // Set to true once you place the 5 .webm files in assets/music/ (automatically falls back to previewSrc if missing or unsupported).
-  useLocalAudio: false,
+  // Full-length local .webm tracks in assets/music/ (automatically falls back to previewSrc if missing or unsupported).
+  useLocalAudio: true,
   // Background soundtrack (5 tracks: Losers Club + CG5).
   tracks: [
     {
